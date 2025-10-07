@@ -1,0 +1,1 @@
+Họ và tên: Nguyễn Chí Toại. Vai trò: Chịu trách nhiệm phát triển Backend (Node.js, Express) và Database (MongoDB).
