@@ -2,11 +2,9 @@
 
 const express = require('express');
 const router = express.Router();
+// SỬA LẠI ĐƯỜNG DẪN Ở ĐÂY
 const { getUsers, createUser } = require('../controllers/userController');
 
-// Chúng ta có thể gộp các route có cùng đường dẫn ('/') lại với nhau
-// GET /api/users -> sẽ gọi hàm getUsers
-// POST /api/users -> sẽ gọi hàm createUser
 router.route('/').get(getUsers).post(createUser);
 
 module.exports = router;

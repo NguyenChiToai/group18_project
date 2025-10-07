@@ -1,29 +1,22 @@
 // backend/server.js
 
-// 1. Import các thư viện cần thiết
 const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
+// 1. IMPORT USER ROUTES
+const userRoutes = require('./routes/userRoutes');
 
-// 2. Cấu hình .env
 dotenv.config();
 
-// 3. Khởi tạo express app
 const app = express();
+app.use(cors());
+app.use(express.json()); // Middleware này rất quan trọng để đọc được req.body
 
-// 4. Sử dụng các middleware
-app.use(cors());          // Cho phép cross-origin requests
-app.use(express.json());  // Parse JSON bodies
+app.get('/', (req, res) => res.send('API is running...'));
 
-// 5. Route kiểm tra đơn giản
-app.get('/', (req, res) => {
-  res.send('API is running...');
-});
+// 2. SỬ DỤNG USER ROUTES
+// Bất kỳ request nào tới '/api/users' sẽ được chuyển cho userRoutes xử lý
+app.use('/api/users', userRoutes);
 
-// 6. Lấy port từ file .env hoặc dùng port 3000 mặc định
 const PORT = process.env.PORT || 3000;
-
-// 7. Khởi động server
-app.listen(PORT, () => {
-  console.log(`Server is up and running on port ${PORT}`);
-});
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
