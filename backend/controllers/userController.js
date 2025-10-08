@@ -1,21 +1,34 @@
-let users = [
-  { id: 1, name: 'Sample User 1', email: 'sample1@test.com' },
-  { id: 2, name: 'Sample User 2', email: 'sample2@test.com' },
-];
+// backend/controllers/userController.js
 
-const getUsers = (req, res) => {
-  res.status(200).json(users);
+const User = require('../models/User'); // Import User model
+
+// Lấy tất cả user từ database
+const getUsers = async (req, res) => {
+  try {
+    const users = await User.find({});
+    res.status(200).json(users);
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error' });
+  }
 };
 
-const createUser = (req, res) => {
+// Tạo một user mới và lưu vào database
+const createUser = async (req, res) => {
   const { name, email } = req.body;
-  if (!name || !email) {
-    return res.status(400).json({ message: 'Name and email are required' });
+
+  try {
+    const newUser = await User.create({
+      name,
+      email,
+    });
+    res.status(201).json(newUser);
+  } catch (error) {
+    // Xử lý lỗi nếu email bị trùng
+    if (error.code === 11000) {
+        return res.status(400).json({ message: 'Email already exists' });
+    }
+    res.status(500).json({ message: 'Server Error' });
   }
-  const newId = users.length > 0 ? Math.max(...users.map(u => u.id)) + 1 : 1;
-  const newUser = { id: newId, name, email };
-  users.push(newUser);
-  res.status(201).json(newUser);
 };
 
 module.exports = {

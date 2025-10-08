@@ -1,8 +1,22 @@
 const mongoose = require('mongoose');
 
-const userSchema = new mongoose.Schema({
-    name: { type: String, required: true },
-    email: { type: String, required: true, unique: true },
-}, { timestamps: true });
+const userSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: [true, 'Please provide a name'],
+    },
+    email: {
+      type: String,
+      required: [true, 'Please provide an email'],
+      unique: true, // Đảm bảo mỗi email là duy nhất
+    },
+  },
+  {
+    timestamps: true, // Tự động tạo 2 trường createdAt và updatedAt
+  }
+);
 
-module.exports = mongoose.model('User', userSchema);
+const User = mongoose.model('User', userSchema);
+
+module.exports = User;
