@@ -15,7 +15,7 @@ function UserList({ refresh }) { // Prop 'refresh' dùng để kích hoạt tả
     try {
       // Gọi API GET để lấy danh sách người dùng
       // SỬ DỤNG ĐÚNG URL API CÓ '/api'
-      const response = await axios.get('http://localhost:3000/api/users');
+      const response = await axios.get('http://192.168.110.172:3000/api/users');
       setUsers(response.data); // Lưu dữ liệu vào state
     } catch (err) {
       console.error('Lỗi khi tải danh sách người dùng:', err);
