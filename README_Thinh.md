@@ -1,0 +1,1 @@
+Họ và tên: Hồng Phước Thịnh. Vai trò: Chịu trách nhiệm phát triển Frontend với React.
