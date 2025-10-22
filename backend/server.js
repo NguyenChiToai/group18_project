@@ -41,6 +41,8 @@ app.use('/api/users', userRoutes);
 
 app.use('/api/auth', require('./routes/authRoutes'));
 
+app.use('/api/profile', require('./routes/profileRoutes'));
+
 // Route cơ bản để kiểm tra server có hoạt động không
 app.get('/', (req, res) => {
   res.send('API server for Group 18 is running!');
