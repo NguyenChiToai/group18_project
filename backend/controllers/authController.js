@@ -43,3 +43,7 @@ exports.login = async (req, res) => {
         res.status(500).json({ message: 'Lỗi server' });
     }
 };
+
+exports.logout = (req, res) => {
+    res.status(200).json({ message: "Đăng xuất thành công" });
+};
