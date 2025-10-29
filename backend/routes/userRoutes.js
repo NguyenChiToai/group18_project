@@ -1,18 +1,17 @@
 // backend/routes/userRoutes.js
-
 const express = require('express');
 const router = express.Router();
-const {
-  getUsers,
-  createUser,
-  updateUser, // Import hàm mới
-  deleteUser,  // Import hàm mới
-} = require('../controllers/userController');
+const { getUsers, deleteUser } = require('../controllers/userController');
+const { protect } = require('../middleware/authMiddleware');
+const { adminProtect } = require('../middleware/adminMiddleware'); // <-- IMPORT DÒNG NÀY
 
-// Route cho GET và POST (không đổi)
-router.route('/').get(getUsers).post(createUser);
+// @route   GET /api/users
+// @desc    Lấy tất cả user (Admin)
+// Áp dụng cả 2 lớp bảo vệ: Phải đăng nhập VÀ phải là admin
+router.route('/').get(protect, adminProtect, getUsers);
 
-// Route cho PUT và DELETE, cần có :id để biết sửa/xóa user nào
-router.route('/:id').put(updateUser).delete(deleteUser);
+// @route   DELETE /api/users/:id
+// @desc    Xóa một user (Admin)
+router.route('/:id').delete(protect, adminProtect, deleteUser);
 
 module.exports = router;
