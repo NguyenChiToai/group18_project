@@ -1,17 +1,19 @@
 // backend/routes/userRoutes.js
 const express = require('express');
 const router = express.Router();
+
+// 1. Import các hàm controller và middleware cần thiết
 const { getUsers, deleteUser } = require('../controllers/userController');
-const { protect } = require('../middleware/authMiddleware');
-const { adminProtect } = require('../middleware/adminMiddleware'); // <-- IMPORT DÒNG NÀY
+const { protect, checkRole } = require('../middleware/authMiddleware');
 
-// @route   GET /api/users
-// @desc    Lấy tất cả user (Admin)
-// Áp dụng cả 2 lớp bảo vệ: Phải đăng nhập VÀ phải là admin
-router.route('/').get(protect, adminProtect, getUsers);
+// 2. Định nghĩa route cho đường dẫn gốc '/api/users'
+// Chỉ có một phương thức GET cho đường dẫn này
+router.route('/')
+    .get(protect, checkRole('admin'), getUsers);
 
-// @route   DELETE /api/users/:id
-// @desc    Xóa một user (Admin)
-router.route('/:id').delete(protect, adminProtect, deleteUser);
+// 3. Định nghĩa route cho đường dẫn '/api/users/:id'
+// Chỉ có một phương thức DELETE cho đường dẫn này
+router.route('/:id')
+    .delete(protect, checkRole('admin'), deleteUser);
 
 module.exports = router;
