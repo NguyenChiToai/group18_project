@@ -1,0 +1,88 @@
+/* src/pages/AuthForm.css */
+
+.auth-container {
+    max-width: 400px; /* Giới hạn chiều rộng của form */
+    margin: 0 auto; /* Tự động căn giữa */
+    padding: 2rem;
+    border-radius: 8px;
+}
+
+.auth-title {
+    text-align: center;
+    margin-bottom: 2rem;
+    font-size: 2rem;
+    color: #222;
+}
+
+.form-group {
+    margin-bottom: 1.5rem; /* Khoảng cách giữa các input */
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: #555;
+}
+
+.form-input {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: #007bff; /* Màu xanh khi focus */
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25); /* Tạo hiệu ứng glow */
+}
+
+.btn {
+    width: 100%;
+    padding: 0.9rem;
+    border: none;
+    border-radius: 4px;
+    background-color: #007bff;
+    color: #ffffff;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.btn:hover {
+    background-color: #0056b3; /* Màu đậm hơn khi hover */
+}
+
+.auth-message {
+    text-align: center;
+    margin-top: 1rem;
+    font-size: 0.9rem;
+}
+
+.auth-message.success {
+    color: #28a745; /* Màu xanh lá cho thành công */
+}
+
+.auth-message.error {
+    color: #dc3545; /* Màu đỏ cho lỗi */
+}
+
+.auth-switch {
+    text-align: center;
+    margin-top: 1.5rem;
+    color: #666;
+}
+
+.auth-switch a {
+    color: #007bff;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.auth-switch a:hover {
+    text-decoration: underline;
+}
