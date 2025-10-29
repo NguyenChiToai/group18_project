@@ -1,0 +1,61 @@
+/* src/pages/Home.css */
+
+.home-container {
+    text-align: center;
+    padding: 4rem 1rem;
+}
+
+.home-title {
+    font-size: 3rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 1rem;
+}
+
+.home-subtitle {
+    font-size: 1.2rem;
+    color: #666;
+    max-width: 600px;
+    margin: 0 auto 2.5rem auto; /* Căn giữa và tạo khoảng cách */
+}
+
+.home-cta {
+    display: flex;
+    justify-content: center;
+    gap: 1rem; /* Khoảng cách giữa 2 nút */
+}
+
+/* Tái sử dụng class .btn từ AuthForm.css nếu được import toàn cục,
+   hoặc định nghĩa lại ở đây. Để chắc chắn, chúng ta định nghĩa lại. */
+.home-cta .btn {
+    padding: 0.9rem 2rem;
+    border: none;
+    border-radius: 4px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    width: auto; /* Ghi đè lại width 100% */
+}
+
+.home-cta .btn-primary {
+    background-color: #007bff;
+    color: white;
+}
+
+.home-cta .btn-primary:hover {
+    background-color: #0056b3;
+    transform: translateY(-2px); /* Hiệu ứng nhấc lên */
+}
+
+.home-cta .btn-secondary {
+    background-color: #f8f9fa;
+    color: #333;
+    border: 1px solid #ddd;
+}
+
+.home-cta .btn-secondary:hover {
+    background-color: #e2e6ea;
+    transform: translateY(-2px);
+}

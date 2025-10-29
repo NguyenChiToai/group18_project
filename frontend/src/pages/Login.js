@@ -1,89 +1,64 @@
+// src/pages/Login.js
+
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { loginUser } from '../services/api'; // Đảm bảo đường dẫn này đúng
+import { Link, useNavigate } from 'react-router-dom';
+import { loginUser } from '../services/api'; // Đảm bảo đường dẫn đúng
+import './AuthForm.css'; // Sử dụng lại cùng file CSS
 
 const Login = () => {
-    const [formData, setFormData] = useState({
-        email: '',
-        password: '',
-    });
+    const [formData, setFormData] = useState({ email: '', password: '' });
     const [message, setMessage] = useState('');
     const navigate = useNavigate();
 
-    // Hàm cập nhật state khi người dùng nhập liệu
-    const handleChange = (e) => {
-        setFormData({
-            ...formData,
-            [e.target.name]: e.target.value,
-        });
-    };
+    const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
-    // Hàm xử lý khi form được submit
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setMessage(''); // Xóa thông báo cũ
-
         try {
-            const response = await loginUser(formData);
-
-            // Lưu token vào Local Storage
-            localStorage.setItem('token', response.data.token);
-
-            setMessage('Đăng nhập thành công! Đang chuyển hướng...');
-
-            // Chuyển hướng ngay lập tức đến trang profile
-            navigate('/profile');
-
+            const { data } = await loginUser(formData);
+            localStorage.setItem('accessToken', data.accessToken);
+            localStorage.setItem('refreshToken', data.refreshToken);
+            localStorage.setItem('user', JSON.stringify(data.user));
+            navigate('/profile'); // Chuyển đến trang profile sau khi đăng nhập
         } catch (error) {
-            // Xử lý lỗi một cách an toàn
-            if (error.response) {
-                // Lỗi đến từ server (ví dụ: sai email/mật khẩu)
-                setMessage(error.response.data.message || 'Đã có lỗi từ server.');
-            } else if (error.request) {
-                // Lỗi không kết nối được tới server
-                setMessage('Không thể kết nối đến server. Vui lòng kiểm tra lại backend!');
-            } else {
-                // Lỗi không xác định khác
-                setMessage('Đã có lỗi xảy ra trong quá trình đăng nhập.');
-            }
-            console.error("Lỗi khi đăng nhập:", error); // Log lỗi ra console để debug
+            setMessage(error.response?.data?.message || 'Đã có lỗi xảy ra.');
         }
     };
 
     return (
-        <div>
-            <h2>Đăng Nhập</h2>
+        <div className="auth-container">
+            <h2 className="auth-title">Đăng Nhập</h2>
             <form onSubmit={handleSubmit}>
-                <div>
-                    <label>Email:</label>
+                <div className="form-group">
+                    <label htmlFor="email">Email</label>
                     <input
                         type="email"
+                        id="email"
                         name="email"
-                        value={formData.email}
+                        className="form-input"
+                        placeholder="vidu@email.com"
                         onChange={handleChange}
-                        placeholder="Nhập email"
                         required
                     />
                 </div>
-                <div>
-                    <label>Mật khẩu:</label>
+                <div className="form-group">
+                    <label htmlFor="password">Mật khẩu</label>
                     <input
                         type="password"
+                        id="password"
                         name="password"
-                        value={formData.password}
+                        className="form-input"
+                        placeholder="Nhập mật khẩu của bạn"
                         onChange={handleChange}
-                        placeholder="Nhập mật khẩu"
                         required
                     />
                 </div>
-                <button type="submit">Đăng nhập</button>
+                {message && <p className="auth-message error">{message}</p>}
+                <button type="submit" className="btn">Đăng Nhập</button>
             </form>
-            {/* Hiển thị thông báo */}
-            {message && (
-<p style={{ color: message.includes('thành công') ? 'green' : 'red' }}>
-                    {message}
-                </p>
-            )}
+            <p className="auth-switch">
+                Chưa có tài khoản? <Link to="/signup">Tạo tài khoản mới</Link>
+            </p>
         </div>
     );
 };
