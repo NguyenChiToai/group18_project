@@ -1,14 +1,28 @@
+// backend/routes/authRoutes.js
 const express = require('express');
 const router = express.Router();
-const { signup, login, logout } = require('../controllers/authController');
 
-// @route   POST api/auth/signup
-router.post('/signup', signup);
+// 1. Import đầy đủ các hàm controller
+const authController = require('../controllers/authController');
 
-// @route   POST api/auth/login
-router.post('/login', login);
+// Route test
+router.get('/test', (req, res) => {
+    console.log(">>> ĐÃ NHẬN REQUEST TẠI /api/auth/test");
+    res.status(200).json({ message: "Server vẫn sống và phản hồi tốt!" });
+});
 
-// @route   POST api/auth/logout
-router.post('/logout', logout);
+// Các route cơ bản
+// Sử dụng authController.signup thay vì signup để tránh lỗi undefined
+router.post('/signup', authController.signup);
+router.post('/login', authController.login);
+
+// 2. Thêm các route mới cho refresh token và logout
+router.post('/refresh', authController.refreshToken);
+router.post('/logout', authController.logout);
+
+// Các route nâng cao
+router.post('/forgot-password', authController.forgotPassword);
+// Chú ý: Route reset-password thường là POST hoặc PUT, không phải GET
+router.post('/reset-password/:token', authController.resetPassword);
 
 module.exports = router;
