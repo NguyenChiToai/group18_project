@@ -1,17 +1,14 @@
 // frontend/src/services/api.js
 import axios from 'axios';
 
-// Giữ nguyên địa chỉ IP của bạn nếu cần test trên điện thoại,
-// hoặc đổi về 'http://localhost:5000/api' khi phát triển trên máy tính.
-const API = axios.create({ baseURL: 'http://192.168.110.200:5000/api' });
+const API = axios.create({ baseURL: 'http://10.10.10.237:5000/api' });
 
 /**
  * AXIOS INTERCEPTORS
- * Đoạn code "phép thuật" này sẽ tự động đính kèm token vào mọi request
- * và tự động làm mới token khi nó hết hạn.
+ * Đoạn code này đảm bảo mọi request đều được xác thực và có thể tự làm mới token.
  */
 
-// 1. Interceptor cho REQUEST (Gửi đi)
+// Interceptor 1: Tự động đính kèm Access Token vào header của MỌI request gửi đi.
 API.interceptors.request.use((req) => {
   const accessToken = localStorage.getItem('accessToken');
   if (accessToken) {
@@ -20,18 +17,17 @@ API.interceptors.request.use((req) => {
   return req;
 });
 
-// 2. Interceptor cho RESPONSE (Nhận về)
+// Interceptor 2: Xử lý khi nhận về lỗi 401 (token hết hạn).
 API.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-    // Nếu lỗi là 401 (Unauthorized) và request này chưa được thử lại
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       try {
         const refreshToken = localStorage.getItem('refreshToken');
         if (!refreshToken) {
-            localStorage.removeItem('accessToken');
+            localStorage.clear();
             window.location.href = '/login';
             return Promise.reject(error);
         }
@@ -43,8 +39,7 @@ API.interceptors.response.use(
         
         return API(originalRequest);
       } catch (refreshError) {
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
+        localStorage.clear();
         window.location.href = '/login';
         return Promise.reject(refreshError);
       }
@@ -53,41 +48,29 @@ API.interceptors.response.use(
   }
 );
 
+// --- DANH SÁCH CÁC HÀM GỌI API ---
 
-// =================================================================
-// --- DANH SÁCH TẤT CẢ CÁC HÀM GỌI API CỦA ỨNG DỤNG ---
-// =================================================================
-
-/**
- * --- 1. AUTHENTICATION APIs ---
- */
+// 1. AUTHENTICATION
 export const signupUser = (formData) => API.post('/auth/signup', formData);
 export const loginUser = (formData) => API.post('/auth/login', formData);
 export const logoutUser = (refreshToken) => API.post('/auth/logout', { token: refreshToken });
 
-/**
- * --- 2. USER PROFILE APIs ---
- */
+// 2. USER PROFILE
 export const getUserProfile = () => API.get('/profile');
 export const updateUserProfile = (userData) => API.put('/profile', userData);
-export const uploadAvatar = (formData) => API.post('/users/upload-avatar', formData, {
-    headers: {
-        'Content-Type': 'multipart/form-data',
-    },
-});
+// Hàm upload avatar gửi đi dưới dạng multipart/form-data. Interceptor sẽ tự gắn token.
+export const uploadAvatar = (formData) => {
+    return API.post('/profile/avatar', formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+        },
+    });
+};
 
-/**
- * --- 3. PASSWORD RESET APIs ---
- */
+// 3. PASSWORD RESET
 export const forgotPassword = (email) => API.post('/auth/forgot-password', { email });
 export const resetPassword = (token, password) => API.post(`/auth/reset-password/${token}`, { password });
 
-/**
-* --- 4. ADMIN APIs ---
- */
+// 4. ADMIN
 export const getAllUsers = () => API.get('/users');
 export const deleteUserById = (userId) => API.delete(`/users/${userId}`);
-
-// Bạn có thể thêm các hàm API khác vào đây khi cần
-// Ví dụ:
-// export const promoteUserToAdmin = (userId) => API.put(`/users/${userId}/promote`);

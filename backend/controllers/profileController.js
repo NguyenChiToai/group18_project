@@ -1,78 +1,64 @@
 // backend/controllers/profileController.js
-
 const User = require('../models/User');
-const cloudinary = require('../config/cloudinary');
+const cloudinary = require('../config/cloudinary'); // <-- Import từ file config
 
 // --- HÀM LẤY PROFILE (GIỮ NGUYÊN) ---
 const getUserProfile = async (req, res) => {
+    // Middleware 'protect' đã lấy user và bỏ password, nên chỉ cần trả về
     res.status(200).json(req.user);
 };
 
 // --- HÀM CẬP NHẬT PROFILE (GIỮ NGUYÊN) ---
 const updateUserProfile = async (req, res) => {
-    const user = await User.findById(req.user._id);
-
-    if (user) {
-        user.name = req.body.name || user.name;
-        user.email = req.body.email || user.email;
-
-        if (req.body.password) {
-            user.password = req.body.password;
-        }
-
-        const updatedUser = await user.save();
-        res.json({
-            _id: updatedUser._id,
-            name: updatedUser.name,
-            email: updatedUser.email,
-            avatar: updatedUser.avatar, // Trả về cả avatar
-        });
-    } else {
-        res.status(404).json({ message: 'Không tìm thấy người dùng' });
-    }
+    // ... code của bạn đã tốt, giữ nguyên ...
 };
 
-// --- HÀM MỚI: CẬP NHẬT URL AVATAR ---
-const updateAvatarFromBase64 = async (req, res) => {
-    // 1. Lấy chuỗi Base64 từ body của request
-    const { avatar } = req.body;
 
-    if (!avatar) {
-        return res.status(400).json({ message: 'Vui lòng cung cấp dữ liệu ảnh Base64' });
+// --- HÀM UPLOAD AVATAR (TỐI ƯU) ---
+const uploadAvatar = async (req, res) => {
+    const { avatar: base64Image } = req.body; // Lấy chuỗi base64 từ body
+
+    if (!base64Image) {
+        return res.status(400).json({ message: 'Vui lòng cung cấp dữ liệu ảnh' });
     }
 
     try {
-        // 2. Upload chuỗi Base64 lên Cloudinary
-        // Cloudinary tự động nhận diện và xử lý chuỗi Base64.
-        const uploadResponse = await cloudinary.uploader.upload(avatar, {
-            folder: "user_avatars_base64", // Tạo một thư mục mới trên Cloudinary để dễ quản lý
-            // Bạn không cần chỉ định public_id, Cloudinary sẽ tự tạo một ID duy nhất
+        // 1. Upload ảnh lên Cloudinary
+        const uploadResponse = await cloudinary.uploader.upload(base64Image, {
+            folder: "group18_avatars", // Đặt tên thư mục trên Cloudinary
+            resource_type: "image", // Chỉ định đây là file ảnh
         });
 
-        // 3. Tìm user và cập nhật lại trường avatar
+        // 2. Tìm và cập nhật user trong DB
         const user = await User.findById(req.user.id);
         if (!user) {
             return res.status(404).json({ message: 'Không tìm thấy người dùng' });
         }
+        user.avatar = uploadResponse.secure_url;
+        await user.save({ validateBeforeSave: false }); // Bỏ qua validation vì chỉ cập nhật avatar
 
-        user.avatar = uploadResponse.secure_url; // Lấy URL an toàn từ kết quả upload
-        await user.save();
-
+        // 3. Trả về thông tin user ĐẦY ĐỦ để frontend cập nhật lại toàn bộ
         res.status(200).json({
             success: true,
             message: 'Cập nhật ảnh đại diện thành công',
-            avatarUrl: user.avatar,
+            user: {
+                _id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                avatar: user.avatar,
+            },
         });
 
     } catch (error) {
-        console.error('Lỗi khi upload Base64 avatar:', error);
+        console.error('Lỗi khi upload avatar:', error);
         res.status(500).json({ success: false, message: 'Lỗi server khi xử lý ảnh' });
     }
 };
 
-// 3. Đảm bảo bạn đã export tất cả các hàm cần thiết
+// --- EXPORTS ---
 module.exports = {
     getUserProfile,
-    updateUserProfile,// Export hàm mới
-    updateAvatarFromBase64,
+    updateUserProfile,
+    uploadAvatar, // Đổi tên hàm cho rõ ràng hơn
 };

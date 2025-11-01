@@ -21,7 +21,7 @@ function AddUser({ onUserAdded }) {
       const newUser = { name, email };
       // Gọi API POST để thêm người dùng
       // SỬ DỤNG ĐÚNG URL API CÓ '/api'
-      await axios.post('http://192.168.1.118:3000/api/users', newUser);
+      await axios.post('http://10.10.10.237:3000/api/users', newUser);
 
       // Nếu thành công:
       setName(''); // Xóa các trường input
