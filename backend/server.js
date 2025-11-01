@@ -30,8 +30,8 @@ connectDB();
 
 // 5. Cấu hình các Middleware toàn cục (phải nằm trước routes)
 app.use(cors()); // Cho phép cross-origin requests
-app.use(express.json()); // Cho phép server đọc body dạng JSON
-app.use(express.urlencoded({ extended: true })); // Cho phép server đọc body từ form
+app.use(express.json({ limit: '50mb' })); // Cho phép JSON body lên tới 50mb
+app.use(express.urlencoded({ limit: '50mb', extended: true })); // Cho phép URL-encoded body
 
 // 6. Định nghĩa các Routes
 app.use('/api/auth', authRoutes);
