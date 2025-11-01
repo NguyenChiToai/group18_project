@@ -1,87 +1,104 @@
-// src/pages/Profile.js
+// frontend/src/pages/Profile.js
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getUserProfile, updateUserProfile, logoutUser } from '../services/api';
-import './Profile.css'; // Import file CSS mới
+import { getUserProfile, updateUserProfile, uploadAvatar, logoutUser } from '../services/api'; 
+import './Profile.css';
 
 const Profile = () => {
-    const [user, setUser] = useState({ name: '', email: '', avatar: '' });
+    const navigate = useNavigate();
     const [formData, setFormData] = useState({ name: '', email: '', password: '' });
     const [message, setMessage] = useState('');
     const [isError, setIsError] = useState(false);
     
-    // State cho việc upload avatar
+    const [avatarPreview, setAvatarPreview] = useState('https://i.pravatar.cc/150');
     const [selectedFile, setSelectedFile] = useState(null);
-    const [avatarPreview, setAvatarPreview] = useState('');
-
-    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchProfile = async () => {
             try {
                 const { data } = await getUserProfile();
-                setUser(data);
                 setFormData({ name: data.name, email: data.email, password: '' });
-                setAvatarPreview(data.avatar || 'https://via.placeholder.com/150'); // Avatar mặc định
+                if (data.avatar) {
+                    setAvatarPreview(data.avatar);
+                }
             } catch (error) {
-                // Xử lý khi token hết hạn hoặc lỗi
-                handleLogout();
+                console.error("Lỗi khi lấy profile:", error);
+                localStorage.clear();
+                navigate('/login');
             }
         };
-
-        if (!localStorage.getItem('accessToken')) {
-            navigate('/login');
-        } else {
-            fetchProfile();
-        }
+        fetchProfile();
     }, [navigate]);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const handleFileChange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            setSelectedFile(file);
-            // Tạo preview cho ảnh được chọn
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setAvatarPreview(reader.result);
-            };
-            reader.readAsDataURL(file);
-        }
-    };
-    
-    // Hàm này sẽ được kích hoạt khi nhấn nút "Đổi Avatar" ẩn
-    const handleAvatarUpload = async () => {
-        if (!selectedFile) return;
-        // Logic gọi API upload avatar sẽ được thêm ở Hoạt động 3
-        // Ví dụ: const apiFormData = new FormData();
-        // apiFormData.append('avatar', selectedFile);
-        // await uploadAvatar(apiFormData);
-        
-        // Giả lập thành công
-        setMessage('Cập nhật ảnh đại diện thành công');
-        setIsError(false);
-    };
-
     const handleUpdateProfile = async (e) => {
         e.preventDefault();
+        setMessage('');
+        setIsError(false);
         try {
-            const dataToUpdate = {
-                name: formData.name,
-                email: formData.email,
-            };
-            if (formData.password) {
-                dataToUpdate.password = formData.password;
+            const updateData = { ...formData };
+            if (!updateData.password) {
+                delete updateData.password;
             }
-            await updateUserProfile(dataToUpdate);
+            const { data } = await updateUserProfile(updateData);
             setMessage('Cập nhật thông tin thành công!');
-            setIsError(false);
+            
+            const storedUser = JSON.parse(localStorage.getItem('user'));
+            const updatedUser = { ...storedUser, name: data.name, email: data.email };
+            localStorage.setItem('user', JSON.stringify(updatedUser));
         } catch (error) {
             setMessage(error.response?.data?.message || 'Có lỗi xảy ra!');
+            setIsError(true);
+        }
+    };
+
+    const handleFileChange = (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            console.log("[DEBUG] File đã được chọn:", file); // Log file được chọn
+            setSelectedFile(file);
+            setAvatarPreview(URL.createObjectURL(file));
+        }
+    };
+
+    const handleAvatarUpload = async () => {
+        if (!selectedFile) {
+            setMessage('Vui lòng chọn một ảnh trước.');
+            setIsError(true);
+            return;
+        }
+
+        // --- BƯỚC DEBUG QUAN TRỌNG NHẤT ---
+        console.log("[DEBUG] Chuẩn bị upload. File đang được giữ trong state là:", selectedFile);
+        
+        const dataForm = new FormData();
+        dataForm.append('avatar', selectedFile);
+
+        // In ra nội dung của FormData để xác nhận
+        for (let [key, value] of dataForm.entries()) {
+            console.log(`[DEBUG] FormData entry: ${key}:`, value);
+        }
+        // ------------------------------------
+
+        try {
+            setMessage('Đang tải ảnh lên...');
+            setIsError(false);
+            console.log("[DEBUG] Bắt đầu gọi API uploadAvatar...");
+            const { data } = await uploadAvatar(dataForm);
+            
+            console.log("[DEBUG] Upload thành công! Response từ server:", data);
+            setMessage(data.message);
+            setAvatarPreview(data.user.avatar);
+            localStorage.setItem('user', JSON.stringify(data.user));
+            setSelectedFile(null); // Reset lại sau khi upload thành công
+        } catch (error) {
+            console.error("[DEBUG] !!! LỖI KHI UPLOAD:", error);
+            console.error("[DEBUG] Chi tiết lỗi từ Axios:", error.response); // In ra toàn bộ response lỗi
+            setMessage(error.response?.data?.message || 'Upload thất bại!');
             setIsError(true);
         }
     };
@@ -104,7 +121,6 @@ const Profile = () => {
 
                 <div className="avatar-section">
                     <img src={avatarPreview} alt="Avatar" className="profile-avatar" />
-                    {/* Input file ẩn đi, được kích hoạt bằng label */}
                     <input 
                         type="file" 
                         id="avatar-upload" 
@@ -113,10 +129,17 @@ const Profile = () => {
                         accept="image/*"
                     />
                     <label htmlFor="avatar-upload" className="btn-avatar-change">
-                        Đổi Avatar
+                        Chọn ảnh...
                     </label>
-                    {/* Nút này có thể dùng để submit ảnh lên server */}
-                    {selectedFile && <button onClick={handleAvatarUpload} className="btn-avatar-submit">Lưu thay đổi</button>}
+                    {selectedFile && (
+                        <button 
+                            onClick={handleAvatarUpload}
+                            className="btn-avatar-submit"
+                            type="button"
+                        >
+                            Lưu thay đổi Avatar
+                        </button>
+                    )}
                 </div>
 
                 <form className="profile-form" onSubmit={handleUpdateProfile}>
@@ -139,7 +162,7 @@ const Profile = () => {
                             name="email"
                             className="form-input"
                             value={formData.email}
-                            onChange={handleChange}
+                            readOnly 
                         />
                     </div>
                     <div className="form-group">
@@ -149,22 +172,27 @@ const Profile = () => {
                             id="password"
                             name="password"
                             className="form-input"
-                            placeholder="Bỏ trống nếu không muốn đổi"
+                            placeholder="Bỏ trống nếu không đổi"
                             value={formData.password}
                             onChange={handleChange}
                         />
                     </div>
-
                     <button type="submit" className="btn btn-primary">Cập nhật thông tin</button>
-                    
-                    {message && (
-                        <p className={`profile-message ${isError ? 'error' : 'success'}`}>
-                            {message}
-                        </p>
-                    )}
                 </form>
                 
-                <button onClick={handleLogout} className="btn btn-logout">Đăng xuất</button>
+                {message && (
+                    <p className={`profile-message ${isError ? 'error' : 'success'}`}>
+                        {message}
+                    </p>
+                )}
+
+                <button 
+                    onClick={handleLogout} 
+                    className="btn btn-logout"
+                    type="button"
+                >
+                    Đăng xuất
+                </button>
             </div>
         </div>
     );
