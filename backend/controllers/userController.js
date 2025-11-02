@@ -1,73 +1,45 @@
 // backend/controllers/userController.js
-
 const User = require('../models/User');
+const mongoose = require('mongoose');
 
-// @desc    Lấy tất cả người dùng từ DB
+// @desc    Lấy tất cả người dùng (Admin)
 // @route   GET /api/users
 const getUsers = async (req, res) => {
-  try {
-    const users = await User.find({});
-    res.status(200).json(users);
-  } catch (error) {
-    res.status(500).json({ message: 'Server Error' });
-  }
-};
-
-// @desc    Tạo một người dùng mới vào DB
-// @route   POST /api/users
-const createUser = async (req, res) => {
-  const { name, email } = req.body;
-  try {
-    const newUser = await User.create({ name, email });
-    res.status(201).json(newUser);
-  } catch (error) {
-    if (error.code === 11000) {
-      return res.status(400).json({ message: 'Email already exists' });
+    try {
+        const users = await User.find({}).select('-password');
+        res.status(200).json(users);
+    } catch (error) {
+        console.error('LỖI KHI LẤY DANH SÁCH USER:', error);
+        res.status(500).json({ message: 'Lỗi máy chủ' });
     }
-    res.status(500).json({ message: 'Server Error' });
-  }
 };
 
-// @desc    Cập nhật (Sửa) một user
-// @route   PUT /api/users/:id
-const updateUser = async (req, res) => {
-  try {
-    const user = await User.findById(req.params.id);
-
-    if (user) {
-      user.name = req.body.name || user.name;
-      user.email = req.body.email || user.email;
-
-      const updatedUser = await user.save();
-      res.status(200).json(updatedUser);
-    } else {
-      res.status(404).json({ message: 'User not found' });
-    }
-  } catch (error) {
-    res.status(500).json({ message: 'Server Error' });
-  }
-};
-
-// @desc    Xóa một user
+// @desc    Xóa một người dùng (Admin)
 // @route   DELETE /api/users/:id
 const deleteUser = async (req, res) => {
-  try {
-    const user = await User.findById(req.params.id);
+    try {
+        const userIdToDelete = req.params.id;
 
-    if (user) {
-      await User.deleteOne({ _id: user._id });
-      res.status(200).json({ message: 'User removed' });
-    } else {
-      res.status(404).json({ message: 'User not found' });
+        if (!mongoose.Types.ObjectId.isValid(userIdToDelete)) {
+            return res.status(400).json({ message: 'ID người dùng không hợp lệ' });
+        }
+
+        if (req.user._id.equals(userIdToDelete)) {
+            return res.status(400).json({ message: 'Admin không thể tự xóa chính mình' });
+        }
+
+        const user = await User.findByIdAndDelete(userIdToDelete);
+
+        if (!user) {
+            return res.status(404).json({ message: 'Không tìm thấy người dùng' });
+        }
+
+        res.status(200).json({ message: 'Xóa người dùng thành công' });
+
+    } catch (error) {
+        console.error('LỖI KHI XÓA USER:', error);
+        res.status(500).json({ message: 'Lỗi máy chủ' });
     }
-  } catch (error) {
-    res.status(500).json({ message: 'Server Error' });
-  }
 };
 
-module.exports = {
-  getUsers,
-  createUser,
-  updateUser,
-  deleteUser,
-};
+module.exports = { getUsers, deleteUser };

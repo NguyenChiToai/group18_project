@@ -1,99 +1,81 @@
+// src/pages/Signup.js
+
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { signupUser } from '../services/api'; // Đảm bảo đường dẫn này đúng
+import { Link, useNavigate } from 'react-router-dom';
+import { signupUser } from '../services/api'; // Đảm bảo đường dẫn đúng
+import './AuthForm.css'; // Import file CSS chung
 
 const Signup = () => {
-    const [formData, setFormData] = useState({
-        name: '',
-        email: '',
-        password: '',
-    });
+    const [formData, setFormData] = useState({ name: '', email: '', password: '' });
     const [message, setMessage] = useState('');
+    const [isError, setIsError] = useState(false);
     const navigate = useNavigate();
 
-    // Hàm cập nhật state khi người dùng nhập liệu
-    const handleChange = (e) => {
-        setFormData({
-            ...formData,
-            [e.target.name]: e.target.value,
-        });
-    };
+    const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
-    // Hàm xử lý khi form được submit
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setMessage(''); // Xóa thông báo cũ trước khi gửi request mới
-
         try {
-            const response = await signupUser(formData);
-            setMessage(response.data.message); // Hiển thị thông báo thành công từ API
-
-            // Chuyển hướng đến trang đăng nhập sau 2 giây
-            setTimeout(() => {
-                navigate('/login');
-            }, 2000);
-
+            const { data } = await signupUser(formData);
+            setMessage(data.message || 'Đăng ký thành công! Đang chuyển hướng...');
+            setIsError(false);
+            setTimeout(() => navigate('/login'), 2000);
         } catch (error) {
-            // Xử lý lỗi một cách an toàn
-            if (error.response) {
-                // Lỗi đến từ server (ví dụ: email đã tồn tại)
-                setMessage(error.response.data.message || 'Đã có lỗi từ server.');
-            } else if (error.request) {
-                // Lỗi không kết nối được tới server
-                setMessage('Không thể kết nối đến server. Vui lòng kiểm tra lại backend!');
-            } else {
-                // Lỗi không xác định khác
-                setMessage('Đã có lỗi xảy ra trong quá trình đăng ký.');
-            }
-            console.error("Lỗi khi đăng ký:", error); // Log lỗi ra console để debug
+            setMessage(error.response?.data?.message || 'Đã có lỗi xảy ra.');
+            setIsError(true);
         }
     };
 
     return (
-        <div>
-            <h2>Đăng Ký Tài Khoản</h2>
+        <div className="auth-container">
+            <h2 className="auth-title">Tạo tài khoản</h2>
             <form onSubmit={handleSubmit}>
-                <div>
-                    <label>Tên:</label>
+                <div className="form-group">
+                    <label htmlFor="name">Tên của bạn</label>
                     <input
                         type="text"
+                        id="name"
                         name="name"
-                        value={formData.name}
+                        className="form-input"
+                        placeholder="Ví dụ: Nguyễn Văn A"
                         onChange={handleChange}
-                        placeholder="Nhập tên của bạn"
                         required
                     />
                 </div>
-                <div>
-                    <label>Email:</label>
+                <div className="form-group">
+                    <label htmlFor="email">Email</label>
                     <input
                         type="email"
+                        id="email"
                         name="email"
-                        value={formData.email}
+                        className="form-input"
+                        placeholder="vidu@email.com"
                         onChange={handleChange}
-                        placeholder="Nhập email"
                         required
                     />
                 </div>
-                <div>
-                    <label>Mật khẩu:</label>
+                <div className="form-group">
+                    <label htmlFor="password">Mật khẩu</label>
                     <input
                         type="password"
+                        id="password"
                         name="password"
-value={formData.password}
+                        className="form-input"
+                        placeholder="Ít nhất 6 ký tự"
                         onChange={handleChange}
-                        placeholder="Nhập mật khẩu"
                         required
                     />
                 </div>
-                <button type="submit">Đăng ký</button>
+                <button type="submit" className="btn">Đăng Ký</button>
             </form>
-            {/* Hiển thị thông báo */}
             {message && (
-                <p style={{ color: message.includes('thành công') ? 'green' : 'red' }}>
+                <p className={`auth-message ${isError ? 'error' : 'success'}`}>
                     {message}
                 </p>
             )}
+            <p className="auth-switch">
+                Đã có tài khoản? <Link to="/login">Đăng nhập ngay</Link>
+            </p>
         </div>
     );
 };

@@ -1,14 +1,20 @@
+// backend/routes/authRoutes.js
 const express = require('express');
 const router = express.Router();
-const { signup, login, logout } = require('../controllers/authController');
+const authController = require('../controllers/authController');
+const { loginLimiter } = require('../middleware/rateLimitMiddleware');
 
-// @route   POST api/auth/signup
-router.post('/signup', signup);
+// Middleware để parse body JSON
+router.use(express.json());
 
-// @route   POST api/auth/login
-router.post('/login', login);
+// Auth routes
+router.post('/signup', authController.signup);
+router.post('/login', loginLimiter, authController.login);
+router.post('/logout', authController.logout);
+router.post('/refresh', authController.refreshToken);
 
-// @route   POST api/auth/logout
-router.post('/logout', logout);
+// Forgot Password routes
+router.post('/forgot-password', authController.forgotPassword);
+router.post('/reset-password/:token', authController.resetPassword);
 
 module.exports = router;
