@@ -27,8 +27,9 @@ const Login = () => {
 
     return (
         <div className="auth-container">
-            <h2 className="auth-title">Đăng Nhập</h2>
-            <form onSubmit={handleSubmit}>
+            <form className="auth-form" onSubmit={handleSubmit}>
+                <h2 className="auth-title">Đăng Nhập</h2>
+                
                 <div className="form-group">
                     <label htmlFor="email">Email</label>
                     <input
@@ -41,8 +42,15 @@ const Login = () => {
                         required
                     />
                 </div>
+                
                 <div className="form-group">
-                    <label htmlFor="password">Mật khẩu</label>
+                    {/* --- PHẦN NÂNG CẤP BẮT ĐẦU TỪ ĐÂY --- */}
+                    <div className="form-label-group">
+                        <label htmlFor="password">Mật khẩu</label>
+                        <Link to="/forgot-password" className="forgot-password-link">Quên mật khẩu?</Link>
+                    </div>
+                    {/* --- KẾT THÚC PHẦN NÂNG CẤP --- */}
+                    
                     <input
                         type="password"
                         id="password"
@@ -53,12 +61,15 @@ const Login = () => {
                         required
                     />
                 </div>
+
                 {message && <p className="auth-message error">{message}</p>}
-                <button type="submit" className="btn">Đăng Nhập</button>
+                
+                <button type="submit" className="btn btn-primary">Đăng Nhập</button>
+                
+                <p className="auth-switch">
+                    Chưa có tài khoản? <Link to="/signup">Tạo tài khoản mới</Link>
+                    </p>
             </form>
-            <p className="auth-switch">
-                Chưa có tài khoản? <Link to="/signup">Tạo tài khoản mới</Link>
-            </p>
         </div>
     );
 };
