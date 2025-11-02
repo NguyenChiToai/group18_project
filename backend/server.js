@@ -12,6 +12,7 @@ const mongoose = require('mongoose');
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const profileRoutes = require('./routes/profileRoutes');
+const logRoutes = require('./routes/logRoutes'); // <-- DÒNG MỚI 1: Import logRoutes
 
 // 3. KHỞI TẠO ỨNG DỤNG EXPRESS
 const app = express();
@@ -67,6 +68,7 @@ app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/profile', profileRoutes);
+app.use('/api/logs', logRoutes); // <-- DÒNG MỚI 2: Sử dụng logRoutes
 
 // Route mặc định để kiểm tra server có đang hoạt động không
 app.get('/', (req, res) => {
