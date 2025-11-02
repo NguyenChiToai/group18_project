@@ -24,6 +24,27 @@
     font-weight: 500;
     color: #555;
 }
+.form-label-group {
+    display: flex;
+    justify-content: space-between; /* Đẩy các item ra 2 phía */
+    align-items: center;           /* Căn giữa theo chiều dọc */
+    width: 100%;
+    margin-bottom: 8px; /* Giữ khoảng cách với input */
+}
+.form-label-group label {
+    margin-bottom: 0; 
+}
+
+.forgot-password-link {
+    font-size: 14px;
+    color: #007bff;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.forgot-password-link:hover {
+    text-decoration: underline;
+}
 
 .form-input {
     width: 100%;

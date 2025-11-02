@@ -2,6 +2,7 @@
 const express = require('express');
 const router = express.Router();
 
+router.use(express.json());
 // 1. Import các hàm controller và middleware cần thiết
 const { getUsers, deleteUser } = require('../controllers/userController');
 const { protect, checkRole } = require('../middleware/authMiddleware');

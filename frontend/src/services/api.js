@@ -1,7 +1,7 @@
 // frontend/src/services/api.js
 import axios from 'axios';
 
-const API = axios.create({ baseURL: 'http://10.10.10.237:5000/api' });
+const API = axios.create({ baseURL: 'http://192.168.110.208:5000/api' });
 
 /**
  * AXIOS INTERCEPTORS

@@ -14,7 +14,12 @@ import Profile from './pages/Profile';
 import AdminPage from './pages/AdminPage';
 import ProtectedRoute from './components/ProtectedRoute';
 
-// Import file CSS toàn cục (chúng ta sẽ sửa nó ở bước 4)
+// === BƯỚC 1: IMPORT THÊM 2 TRANG MỚI ===
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
+
+
+// Import file CSS toàn cục
 import './App.css'; 
 
 function App() {
@@ -41,6 +46,11 @@ function App() {
               </ProtectedRoute>
             } 
           />
+          
+          {/* === BƯỚC 2: THÊM 2 ROUTE MỚI VÀO ĐÂY === */}
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password/:token" element={<ResetPassword />} />
+          
         </Routes>
       </main>
     </Router>
