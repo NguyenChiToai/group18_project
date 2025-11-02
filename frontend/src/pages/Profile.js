@@ -2,11 +2,18 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux'; // <-- Import useDispatch và useSelector
+import { logout, loginSuccess } from '../redux/slices/authSlice'; // <-- Import các actions
 import { getUserProfile, updateUserProfile, uploadAvatar, logoutUser } from '../services/api'; 
 import './Profile.css';
 
 const Profile = () => {
     const navigate = useNavigate();
+    const dispatch = useDispatch(); // <-- Khởi tạo dispatch hook
+
+    // Lấy thông tin user từ Redux store thay vì gọi API liên tục
+    const { user: userFromRedux } = useSelector((state) => state.auth);
+
     const [formData, setFormData] = useState({ name: '', email: '', password: '' });
     const [message, setMessage] = useState('');
     const [isError, setIsError] = useState(false);
@@ -15,6 +22,8 @@ const Profile = () => {
     const [selectedFile, setSelectedFile] = useState(null);
 
     useEffect(() => {
+        // Hàm này giờ chỉ chạy một lần để lấy thông tin mới nhất khi vào trang
+        // Hoặc có thể dựa hoàn toàn vào Redux state nếu muốn
         const fetchProfile = async () => {
             try {
                 const { data } = await getUserProfile();
@@ -24,12 +33,14 @@ const Profile = () => {
                 }
             } catch (error) {
                 console.error("Lỗi khi lấy profile:", error);
+                // Nếu lỗi, thực hiện logout để dọn dẹp
                 localStorage.clear();
+                dispatch(logout());
                 navigate('/login');
             }
         };
         fetchProfile();
-    }, [navigate]);
+    }, [navigate, dispatch]);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -47,9 +58,14 @@ const Profile = () => {
             const { data } = await updateUserProfile(updateData);
             setMessage('Cập nhật thông tin thành công!');
             
-            const storedUser = JSON.parse(localStorage.getItem('user'));
-            const updatedUser = { ...storedUser, name: data.name, email: data.email };
-            localStorage.setItem('user', JSON.stringify(updatedUser));
+            // Cập nhật lại thông tin user trong LocalStorage và Redux Store
+            const updatedUserForStorage = { ...userFromRedux, name: data.name, email: data.email };
+            localStorage.setItem('user', JSON.stringify(updatedUserForStorage));
+            
+            // Dispatch action để cập nhật Redux store với accessToken hiện tại
+            const accessToken = localStorage.getItem('accessToken');
+            dispatch(loginSuccess({ user: updatedUserForStorage, accessToken }));
+
         } catch (error) {
             setMessage(error.response?.data?.message || 'Có lỗi xảy ra!');
             setIsError(true);
@@ -59,7 +75,6 @@ const Profile = () => {
     const handleFileChange = (event) => {
         const file = event.target.files[0];
         if (file) {
-            console.log("[DEBUG] File đã được chọn:", file); // Log file được chọn
             setSelectedFile(file);
             setAvatarPreview(URL.createObjectURL(file));
         }
@@ -72,32 +87,24 @@ const Profile = () => {
             return;
         }
 
-        // --- BƯỚC DEBUG QUAN TRỌNG NHẤT ---
-        console.log("[DEBUG] Chuẩn bị upload. File đang được giữ trong state là:", selectedFile);
-        
         const dataForm = new FormData();
         dataForm.append('avatar', selectedFile);
-
-        // In ra nội dung của FormData để xác nhận
-        for (let [key, value] of dataForm.entries()) {
-            console.log(`[DEBUG] FormData entry: ${key}:`, value);
-        }
-        // ------------------------------------
 
         try {
             setMessage('Đang tải ảnh lên...');
             setIsError(false);
-            console.log("[DEBUG] Bắt đầu gọi API uploadAvatar...");
             const { data } = await uploadAvatar(dataForm);
             
-            console.log("[DEBUG] Upload thành công! Response từ server:", data);
             setMessage(data.message);
             setAvatarPreview(data.user.avatar);
+            
+            // Cập nhật lại thông tin user trong LocalStorage và Redux Store
             localStorage.setItem('user', JSON.stringify(data.user));
-            setSelectedFile(null); // Reset lại sau khi upload thành công
+            const accessToken = localStorage.getItem('accessToken');
+            dispatch(loginSuccess({ user: data.user, accessToken }));
+
+            setSelectedFile(null);
         } catch (error) {
-            console.error("[DEBUG] !!! LỖI KHI UPLOAD:", error);
-            console.error("[DEBUG] Chi tiết lỗi từ Axios:", error.response); // In ra toàn bộ response lỗi
             setMessage(error.response?.data?.message || 'Upload thất bại!');
             setIsError(true);
         }
@@ -110,7 +117,10 @@ const Profile = () => {
         } catch (error) {
             console.error("Lỗi khi logout trên server:", error);
         }
+        
+        // Dọn dẹp LocalStorage và Redux Store, sau đó điều hướng
         localStorage.clear();
+        dispatch(logout()); // <-- Dispatch action logout
         navigate('/login');
     };
 
@@ -140,7 +150,7 @@ const Profile = () => {
                             Lưu thay đổi Avatar
                         </button>
                     )}
-                </div>
+                    </div>
 
                 <form className="profile-form" onSubmit={handleUpdateProfile}>
                     <div className="form-group">
