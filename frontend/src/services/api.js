@@ -74,3 +74,6 @@ export const resetPassword = (token, password) => API.post(`/auth/reset-password
 // 4. ADMIN
 export const getAllUsers = () => API.get('/users');
 export const deleteUserById = (userId) => API.delete(`/users/${userId}`);
+
+// === BẠN CHỈ CẦN THÊM DÒNG DƯỚI ĐÂY VÀO ===
+export const getAllLogs = () => API.get('/logs');
