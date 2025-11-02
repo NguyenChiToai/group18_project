@@ -2,34 +2,42 @@
 const express = require('express');
 const router = express.Router();
 
-// --- BƯỚC 1: IMPORT CONTROLLERS ---
-// Đảm bảo dòng này import đầy đủ cả 3 hàm
+// Import controllers
 const { 
     getUserProfile, 
     updateUserProfile, 
     uploadAvatar 
 } = require('../controllers/profileController');
 
-// --- BƯỚC 2: IMPORT MIDDLEWARES ---
+// Import middlewares
 const { protect } = require('../middleware/authMiddleware');
 const upload = require('../middleware/uploadMiddleware');
+const logActivity = require('../middleware/logActivityMiddleware'); // Đã import
 
 // =================================================================
 // ĐỊNH NGHĨA CÁC ROUTE
 // =================================================================
 
 // Route để lấy (GET) và cập nhật (PUT) thông tin cơ bản của profile
-// Áp dụng middleware express.json() chỉ cho route PUT này
 router.route('/')
-    .get(protect, getUserProfile)
-    .put(protect, express.json({ limit: '50mb' }), updateUserProfile); // Thêm express.json() vào đây
+    .get(
+        protect, 
+        getUserProfile
+    )
+    .put(
+        protect, 
+        express.json({ limit: '50mb' }), 
+        logActivity('PROFILE_UPDATE'), // <-- THÊM VÀO ĐÂY
+        updateUserProfile
+    );
 
 // Route để upload avatar
-// Route này sử dụng middleware của Multer, không dùng express.json()
+// Chúng ta cũng có thể ghi log cho hành động này
 router.post(
     '/avatar', 
     protect, 
     upload.single('avatar'), 
+    logActivity('AVATAR_UPDATE'), // <-- CÂN NHẮC THÊM VÀO ĐÂY
     uploadAvatar
 );
 
