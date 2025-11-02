@@ -1,35 +1,35 @@
 // src/components/ProtectedRoute.js
 
 import React from 'react';
+// === BƯỚC 1: IMPORT HOOK 'useSelector' TỪ 'react-redux' ===
+import { useSelector } from 'react-redux';
 import { Navigate, useLocation } from 'react-router-dom';
 
 const ProtectedRoute = ({ children, roles }) => {
-    const location = useLocation(); // Lưu lại vị trí trang mà người dùng đang muốn vào
+    const location = useLocation();
 
-    // Lấy thông tin người dùng từ Local Storage
-    const userString = localStorage.getItem('user');
-    const user = userString ? JSON.parse(userString) : null;
+    // === BƯỚC 2: THAY THẾ LOGIC ĐỌC TỪ LOCALSTORAGE BẰNG useSelector ===
+    // Hook 'useSelector' cho phép component "đăng ký" để lấy một phần của Redux state.
+    // Khi state.auth thay đổi, component này sẽ tự động re-render.
+    const { isAuthenticated, user } = useSelector((state) => state.auth);
 
-    // --- LOGIC KIỂM TRA ---
+    // --- LOGIC KIỂM TRA MỚI ---
 
-    // 1. Kiểm tra xem người dùng đã đăng nhập chưa.
-    // Nếu 'user' không tồn tại, tức là chưa đăng nhập.
-    if (!user) {
+    // 1. Kiểm tra xem người dùng đã đăng nhập chưa, DỰA VÀO REDUX STATE.
+    // 'isAuthenticated' là một boolean, code sẽ sạch hơn.
+    if (!isAuthenticated) {
         // Chuyển hướng người dùng về trang đăng nhập.
-        // `state={{ from: location }}` để sau khi đăng nhập thành công, ta có thể quay lại trang họ muốn vào.
         return <Navigate to="/login" state={{ from: location }} replace />;
     }
 
-    // 2. Nếu route này có yêu cầu về vai trò (prop 'roles' được truyền vào)
-    // thì kiểm tra xem vai trò của người dùng có nằm trong danh sách được phép không.
+    // 2. Nếu route yêu cầu vai trò, kiểm tra vai trò của user từ REDUX STATE.
+    // 'user' bây giờ là một object lấy trực tiếp từ store.
     if (roles && !roles.includes(user.role)) {
-        // Nếu không có quyền, chuyển hướng về trang chủ.
-        // Bạn cũng có thể tạo một trang "403 - Cấm truy cập" và chuyển hướng về đó.
+        // Không có quyền, chuyển hướng về trang chủ.
         return <Navigate to="/" replace />;
     }
 
-    // 3. Nếu vượt qua cả 2 lần kiểm tra, cho phép hiển thị nội dung của trang đó.
-    // 'children' ở đây chính là component trang (ví dụ: <Profile /> hoặc <AdminPage />)
+    // 3. Nếu mọi thứ ổn, cho phép hiển thị nội dung.
     return children;
 };
 
